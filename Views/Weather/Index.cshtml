@@ -1,0 +1,263 @@
+﻿@model WeatherData?
+
+@{
+    ViewData["Title"] = "Previsão do Tempo";
+}
+
+<style>
+    body {
+        background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .weather-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        margin-top: 2rem;
+        padding: 2rem;
+    }
+    
+    .search-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .weather-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    .weather-info-item {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+        backdrop-filter: blur(5px);
+        transition: transform 0.2s ease;
+    }
+    
+    .weather-info-item:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-search {
+        background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+        border: none;
+        border-radius: 25px;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        box-shadow: 0 5px 15px rgba(0, 184, 148, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-search:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 184, 148, 0.4);
+        background: linear-gradient(135deg, #00a085 0%, #00b894 100%);
+    }
+    
+    .form-control {
+        border-radius: 15px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus {
+        border-color: #74b9ff;
+        box-shadow: 0 0 0 0.2rem rgba(116, 185, 255, 0.25);
+    }
+    
+    .weather-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    .info-icon {
+        color: rgba(255, 255, 255, 0.8);
+        margin-right: 0.5rem;
+    }
+    
+    .alert-custom {
+        background: linear-gradient(135deg, #fd79a8 0%, #e84393 100%);
+        color: white;
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(253, 121, 168, 0.3);
+    }
+    
+    .city-title {
+        font-size: 2.5rem;
+        font-weight: 300;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .temperature-display {
+        font-size: 3.5rem;
+        font-weight: 200;
+        margin: 1rem 0;
+    }
+</style>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="weather-container">
+                <div class="text-center mb-4">
+                    <h1 class="display-4 text-primary mb-2">
+                        <i class="fas fa-cloud-sun me-3"></i>Previsão do Tempo
+                    </h1>
+                    <p class="lead text-muted">Consulte o clima de qualquer cidade do mundo</p>
+                </div>
+
+                <!-- Formulário de Busca -->
+                <div class="card search-card">
+                    <div class="card-body">
+                        <form method="get" asp-action="Index">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <label for="city" class="form-label fw-semibold">
+                                        <i class="fas fa-map-marker-alt text-primary me-2"></i>Nome da Cidade
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="city" 
+                                           name="city" 
+                                           placeholder="Ex: São Paulo, London,GB, Miami,FL,US" 
+                                           value="@ViewContext.HttpContext.Request.Query["city"]"
+                                           required>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-search text-white w-100">
+                                        <i class="fas fa-search me-2"></i>Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-text text-muted mt-1">
+                                        <small><i class="fas fa-info-circle me-1"></i>Formatos aceitos: Cidade, Cidade,País ou Cidade,Estado,País</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Mensagem de Erro -->
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-custom" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        @ViewBag.ErrorMessage
+                    </div>
+                }
+
+                <!-- Resultados do Clima -->
+                @if (Model != null)
+                {
+                    <div class="card weather-card">
+                        <div class="card-body text-center">
+                            <!-- Ícone do Clima -->
+                            <div class="weather-icon">
+                                @{
+                                    string weatherIcon = "fas fa-sun";
+                                    if (Model.Condition?.ToLower().Contains("sol") == true)
+                                    {
+                                        weatherIcon = "fas fa-sun";
+                                    }
+                                    else if (Model.Condition?.ToLower().Contains("nuvens") == true || Model.Condition?.ToLower().Contains("nublado") == true)
+                                    {
+                                        weatherIcon = "fas fa-cloud";
+                                    }
+                                    else if (Model.Condition?.ToLower().Contains("chuva") == true || Model.Condition?.ToLower().Contains("chuvoso") == true)
+                                    {
+                                        weatherIcon = "fas fa-cloud-rain";
+                                    }
+                                }
+                                <i class="@weatherIcon"></i>
+                            </div>
+
+                            <!-- Nome da Cidade -->
+                            <h2 class="city-title">@Model.City</h2>
+                            
+                            <!-- Temperatura Principal -->
+                            <div class="temperature-display">
+                                @if (!string.IsNullOrEmpty(Model.Temperature))
+                                {
+                                    @($"{double.Parse(Model.Temperature):F1}°C")
+                                }
+                            </div>
+
+                            <!-- Condição Climática -->
+                            <p class="fs-5 mb-4 text-capitalize">@Model.Condition</p>
+
+                            <!-- Informações Detalhadas -->
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <div class="weather-info-item">
+                                        <i class="fas fa-thermometer-half info-icon"></i>
+                                        <strong>Temperatura:</strong><br>
+                                        @if (!string.IsNullOrEmpty(Model.Temperature))
+                                        {
+                                            @($"{double.Parse(Model.Temperature):F1}°C")
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="weather-info-item">
+                                        <i class="fas fa-tint info-icon"></i>
+                                        <strong>Umidade:</strong><br>
+                                        @(!string.IsNullOrEmpty(Model.Humidity) ? $"{Model.Humidity}%" : "N/A")
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="weather-info-item">
+                                        <i class="fas fa-wind info-icon"></i>
+                                        <strong>Velocidade do Vento:</strong><br>
+                                        @if (!string.IsNullOrEmpty(Model.WindSpeed))
+                                        {
+                                            @($"{double.Parse(Model.WindSpeed):F1} m/s")
+                                        }
+                                        else
+                                        {
+                                            @("N/A")
+                                        }
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <div class="weather-info-item">
+                                        <i class="fas fa-eye info-icon"></i>
+                                        <strong>Condição:</strong><br>
+                                        <span class="text-capitalize">@Model.Condition</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (ViewContext.HttpContext.Request.Query.ContainsKey("city") && ViewBag.ErrorMessage == null)
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-search text-muted" style="font-size: 3rem;"></i>
+                        <h4 class="text-muted mt-3">Buscando informações...</h4>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
