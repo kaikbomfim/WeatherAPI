@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: weatherapi
+    runtime: docker
+    plan: free
+    autoDeploy: true
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: WeatherApi__ApiKey
+        sync: false
